@@ -1,18 +1,25 @@
 <template>
   <div class="container">
-    <div class="row"></div>
+    <div class="row">{{ userStore.user?.account }}</div>
+    <button @click="handleLogin">登录</button>
+    <van-button type="danger">hello</van-button>
   </div>
 </template>
-<style lang="scss">
-.container {
-  width: 1000px;
-  height: 500px;
-  background: yellow;
 
-  .row {
-    width: 200px;
-    height: 200px;
-    background: red;
-  }
+<script setup lang="ts">
+import { useUserStore } from '@/stores'
+import { Button as VanButton } from 'vant'
+
+const userStore = useUserStore()
+const info = {
+  id: '1',
+  token: '123',
+  account: '章三',
+  mobile: '111',
+  avatar: 'https://www.nbaou.com'
 }
-</style>
+const handleLogin = () => {
+  userStore.setUser(info)
+  localStorage.setItem('user', JSON.stringify(info))
+}
+</script>
