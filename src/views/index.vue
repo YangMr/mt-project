@@ -3,6 +3,7 @@
     <div class="row">{{ userStore.user?.account }}</div>
     <button @click="handleLogin">登录</button>
     <van-button type="danger">hello</van-button>
+    <div class="box"></div>
   </div>
 </template>
 
@@ -23,3 +24,13 @@ const handleLogin = () => {
   localStorage.setItem('user', JSON.stringify(info))
 }
 </script>
+<style>
+.box {
+  width: 200px;
+  height: 200px;
+  background-color: yellow;
+}
+.van-button {
+  font-size: 40px;
+}
+</style>
