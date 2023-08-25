@@ -1,13 +1,26 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-// 手机号
-const mobile = ref<string>('')
-// 密码
-const password = ref<string>('')
+import { mobileRules, passwordRules } from '@/utils/rules'
+import { showToast } from 'vant'
+// 手机号// 密码
+import type { loginParamsRules } from '@/services/types/user.d'
+const loginForm = ref<loginParamsRules>({
+  mobile: '13230000001',
+  password: 'abc12345'
+})
+
 // 协议状态
 const agree = ref<boolean>(false)
 // 密码状态
 const show = ref<boolean>(false)
+// 登录方法
+const hanleLogin = () => {
+  if (!agree.value) {
+    console.log('123')
+    showToast('请勾选我已同意')
+    return
+  }
+}
 </script>
 
 <template>
@@ -25,9 +38,19 @@ const show = ref<boolean>(false)
     </div>
 
     <!-- form表单 -->
-    <van-form autocomplete="off">
-      <van-field v-model="mobile" placeholder="请输入手机号码" type="tel" />
-      <van-field v-model="password" placeholder="请输入密码" :type="show ? 'text' : 'password'">
+    <van-form autocomplete="off" @submit="hanleLogin">
+      <van-field
+        :rules="mobileRules"
+        v-model="loginForm.mobile"
+        placeholder="请输入手机号码"
+        type="tel"
+      />
+      <van-field
+        :rules="passwordRules"
+        v-model="loginForm.password"
+        placeholder="请输入密码"
+        :type="show ? 'text' : 'password'"
+      >
         <template #button>
           <cp-icons :name="`login-eye-${show ? 'on' : 'off'}`" @click="show = !show"></cp-icons>
         </template>
@@ -41,7 +64,7 @@ const show = ref<boolean>(false)
         </van-checkbox>
       </div>
       <div class="cp-cell">
-        <van-button block round type="primary">登 录</van-button>
+        <van-button block round type="primary" native-type="submit">登 录</van-button>
       </div>
       <div class="cp-cell">
         <a href="javascript:;">忘记密码</a>
