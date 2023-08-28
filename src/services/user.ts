@@ -2,6 +2,8 @@ import request from '@/utils/request'
 import type { CodeTypeRules } from './types/user.d'
 import type { User } from '@/types/user.d'
 
+// 什么是泛型?  预先不指定类型, 返回的时候指定类型
+
 // 密码登录
 export const loginByPassword = (mobile: string, password: string) => {
   return request<User>('/login/password', 'POST', { mobile, password })
