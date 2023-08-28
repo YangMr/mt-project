@@ -1,7 +1,18 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { mobileRules, passwordRules } from '@/utils/rules'
+import { loginByPassword } from '@/services/user'
+import { useUserStore } from '@/stores/user'
 import { showToast } from 'vant'
+import { useRouter, useRoute } from 'vue-router'
+
+// 初始化store
+const store = useUserStore()
+
+// 初始化router与route
+const router = useRouter()
+const route = useRoute()
+
 // 手机号// 密码
 import type { loginParamsRules } from '@/services/types/user.d'
 const loginForm = ref<loginParamsRules>({
@@ -14,11 +25,29 @@ const agree = ref<boolean>(false)
 // 密码状态
 const show = ref<boolean>(false)
 // 登录方法
-const hanleLogin = () => {
+const hanleLogin = async () => {
   if (!agree.value) {
-    console.log('123')
     showToast('请勾选我已同意')
     return
+  }
+
+  // 第一种, 不是因为token过期进入到登录页面, 而是我们打开项目自己进入登录页, 没有携带当前页面的地址
+  // 第二种 token过期, 自动跳转到登录页, 如果是第二种情况的话, 会携带当前的页面地址
+
+  try {
+    // 调用登录接口
+    const loginRes = await loginByPassword(loginForm.value)
+
+    // 将登录成功的token存储搭配本地和pinia
+    store.setUser(loginRes.data)
+
+    // 跳转到主页
+    router.push((route.query.returnUrl as string) || '/user')
+
+    // 提示登录成功
+    showToast('登录成功')
+  } catch (error) {
+    console.log(error)
   }
 }
 </script>

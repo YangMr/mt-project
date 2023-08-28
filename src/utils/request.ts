@@ -43,7 +43,7 @@ instance.interceptors.response.use(
       const store = useUserStore()
       store.delUser()
       // 2. 回到登录页
-      router.push(`/login?${router.currentRoute.value.fullPath}`)
+      router.push(`/login?returnUrl=${router.currentRoute.value.fullPath}`)
     }
     return Promise.reject(error)
   }
