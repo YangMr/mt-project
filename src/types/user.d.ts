@@ -1,3 +1,4 @@
+// 联合类型
 export type User =
   | {
       id: number | string
@@ -8,9 +9,10 @@ export type User =
     }
   | undefined
 
+// 匹配出非token字段的类型
 type OmitUser = Omit<User, 'token'>
 
-export type UserInfo = OmitUser & {
+type Info = {
   likeNumber: number
   collectionNumber: number
   score: number
@@ -22,3 +24,5 @@ export type UserInfo = OmitUser & {
     finishedNumber: number
   }
 }
+// 交叉类型
+export type UserInfo = Info & UserInfo

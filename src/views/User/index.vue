@@ -17,7 +17,7 @@ initUserInfo()
 </script>
 
 <template>
-  <div class="user-page">
+  <div class="user-page" v-if="user">
     <div class="user-page-header">
       <div class="top">
         <van-image width="70px" height="70px" round :src="user?.avatar" />
@@ -28,7 +28,7 @@ initUserInfo()
       </div>
       <van-row>
         <van-col span="6">
-          <!-- <p>{{ user.collectionNumber }}</p> -->
+          <p>{{ user?.collectionNumber }}</p>
           <p>收藏</p>
         </van-col>
         <van-col span="6">
