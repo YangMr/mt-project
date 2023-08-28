@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { getUserInfo } from '@/services/user'
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import type { UserInfo } from '@/types/user'
 
 // 初始化一个变量, 用来保存用户信息
@@ -9,7 +9,6 @@ const user = ref<UserInfo>()
 // 获取用户信息
 const initUserInfo = async () => {
   const userRes = await getUserInfo()
-  // console.log('userRes', userRes)
   user.value = userRes.data
   console.log('user.value ', user.value)
 }
