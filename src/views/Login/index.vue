@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { mobileRules, passwordRules } from '@/utils/rules'
-import { loginByPassword } from '@/services/user'
+import { ref, onUnmounted } from 'vue'
+import { mobileRules, passwordRules, codeRules } from '@/utils/rules'
+import { loginByPassword, sendMobileCode, loginByMobile } from '@/services/user'
 import { useUserStore } from '@/stores/user'
 import { showToast } from 'vant'
 import { useRouter, useRoute } from 'vue-router'
@@ -13,11 +13,14 @@ const store = useUserStore()
 const router = useRouter()
 const route = useRoute()
 
+// 初始化密码与短信验证码界面状态
+const isPass = ref(true)
+
 // 手机号// 密码
-import type { loginParamsRules } from '@/services/types/user.d'
-const loginForm = ref<loginParamsRules>({
-  mobile: '13230000001',
-  password: 'abc12345'
+const loginForm = ref({
+  mobile: '', // 13230000001
+  password: '',
+  code: ''
 })
 
 // 协议状态
@@ -35,14 +38,18 @@ const hanleLogin = async () => {
   // 第二种 token过期, 自动跳转到登录页, 如果是第二种情况的话, 会携带当前的页面地址
 
   try {
+    // 如果isPass的值为true,则表示是密码登录, false, 短信验证码登录
     // 调用登录接口
-    const loginRes = await loginByPassword(loginForm.value)
+
+    const loginRes = isPass.value
+      ? await loginByPassword(loginForm.value.mobile, loginForm.value.password)
+      : await loginByMobile(loginForm.value.mobile, loginForm.value.code)
 
     // 将登录成功的token存储搭配本地和pinia
     store.setUser(loginRes.data)
 
     // 跳转到主页
-    router.push((route.query.returnUrl as string) || '/user')
+    router.replace((route.query.returnUrl as string) || '/user')
 
     // 提示登录成功
     showToast('登录成功')
@@ -50,6 +57,31 @@ const hanleLogin = async () => {
     console.log(error)
   }
 }
+
+const time = ref(0)
+let timeId: number = 0
+// 发送验证码
+const sendCode = async () => {
+  if (time.value > 0) return
+
+  // 调用接口
+  const codeRes = await sendMobileCode(loginForm.value.mobile, 'login')
+  console.log('codeRes', codeRes)
+
+  // 倒计时逻辑
+  showToast('发送成功')
+  time.value = 60
+  clearInterval(timeId)
+  timeId = setInterval(() => {
+    time.value--
+    if (time.value <= 0) clearInterval(timeId)
+  }, 1000)
+}
+
+// 当页面卸载的时候, 清除定时器
+onUnmounted(() => {
+  clearInterval(timeId)
+})
 </script>
 
 <template>
@@ -59,9 +91,9 @@ const hanleLogin = async () => {
 
     <!-- head -->
     <div class="login-head">
-      <h3>密码登录</h3>
+      <h3>{{ isPass ? '密码登录' : '短信验证码登录' }}</h3>
       <a href="javascript:;">
-        <span>短信验证码登录</span>
+        <span @click="isPass = !isPass">{{ isPass ? '短信验证码登录' : '密码登录' }}</span>
         <van-icon name="arrow"></van-icon>
       </a>
     </div>
@@ -79,9 +111,23 @@ const hanleLogin = async () => {
         v-model="loginForm.password"
         placeholder="请输入密码"
         :type="show ? 'text' : 'password'"
+        v-if="isPass"
       >
         <template #button>
           <cp-icons :name="`login-eye-${show ? 'on' : 'off'}`" @click="show = !show"></cp-icons>
+        </template>
+      </van-field>
+      <van-field
+        :rules="codeRules"
+        v-model="loginForm.code"
+        placeholder="请输入验证码"
+        type="text"
+        v-else
+      >
+        <template #button>
+          <span class="send-btn" :class="{ active: time > 0 }" @click="sendCode">
+            {{ time > 0 ? time + 's后再次发送' : '发送验证码' }}</span
+          >
         </template>
       </van-field>
       <div class="cp-cell">
@@ -163,6 +209,12 @@ const hanleLogin = async () => {
       color: var(--cp-primary);
       padding: 0 5px;
     }
+  }
+}
+.send-btn {
+  color: var(--cp-primary);
+  &.active {
+    color: rgba(22, 194, 163, 0.5);
   }
 }
 </style>
