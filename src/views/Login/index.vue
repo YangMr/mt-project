@@ -18,8 +18,8 @@ const isPass = ref(true)
 
 // 手机号// 密码
 const loginForm = ref({
-  mobile: '', // 13230000001
-  password: '',
+  mobile: '13230000002', // 13230000001
+  password: 'abc12345',
   code: ''
 })
 
