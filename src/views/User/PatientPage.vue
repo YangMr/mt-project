@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { getPatientList } from '@/services/patient'
-import type { PatientList } from '@/types/user'
-import { ref } from 'vue'
+import type { PatientList, PatientType } from '@/types/user'
+import { ref, computed } from 'vue'
+import { showToast } from 'vant'
+import Validator from 'id-validator'
 
 // 创建一个变量,保存患者列表
 const list = ref<PatientList>()
@@ -12,6 +14,56 @@ const initPatientList = async () => {
   list.value = patienRes.data
 }
 initPatientList()
+
+// 创建性别数据
+const options = [
+  { label: '男', value: 1 },
+  { label: '女', value: 0 }
+]
+
+// 控制弹出层显示与隐藏
+const show = ref(false)
+
+// 打开弹出层
+const showPopup = () => {
+  show.value = true
+}
+
+// 关闭弹出层
+const backPopup = () => {
+  patient.value = { ...initPatient }
+  show.value = false
+}
+
+// 监听保存按钮
+const submit = () => {
+  if (!patient.value.name) return showToast('请输入真实姓名')
+  if (!patient.value.idCard) return showToast('请输入身份证号')
+  const validator = new Validator()
+  if (!validator.isValid(patient.value.idCard)) return showToast('身份证格式错误')
+  const { sex } = validator.getInfo(patient.value.idCard)
+  if (patient.value.gender !== sex) return showToast('性别和身份证不符')
+}
+
+const initPatient: PatientType = {
+  name: '',
+  idCard: '',
+  defaultFlag: 0,
+  gender: 1
+}
+
+// 定义接收表单输入的数据
+const patient = ref<PatientType>({ ...initPatient })
+
+const defaultFlag = computed({
+  get() {
+    console.log('123')
+    return patient.value.defaultFlag === 1 ? true : false
+  },
+  set(value) {
+    patient.value.defaultFlag = value ? 1 : 0
+  }
+})
 </script>
 
 <template>
@@ -29,13 +81,37 @@ initPatientList()
         <div class="tag" v-if="item.defaultFlag === 1">默认</div>
       </div>
 
-      <div class="patient-add" v-if="list && list?.length <= 6">
+      <div class="patient-add" @click="showPopup" v-if="list && list?.length <= 6">
         <cp-icons name="user-add"></cp-icons>
         <p>添加患者</p>
       </div>
 
       <div class="patient-tip">最多可添加6人</div>
     </div>
+    <!-- 右侧弹出 -->
+    <van-popup v-model:show="show" position="right">
+      <cp-nav-bar
+        :back="backPopup"
+        title="添加患者"
+        rightText="保存"
+        @click-right="submit"
+      ></cp-nav-bar>
+
+      <van-form autocomplete="off">
+        <van-field label="真实姓名" v-model="patient.name" placeholder="请输入真实姓名"></van-field>
+        <van-field label="身份证号" v-model="patient.idCard" placeholder="请输入身份证号" />
+        <van-field label="性别">
+          <template #input>
+            <cp-radio-btn :options="options" v-model="patient.gender"></cp-radio-btn>
+          </template>
+        </van-field>
+        <van-field label="默认就诊人">
+          <template #input>
+            <van-checkbox round v-model="defaultFlag" />
+          </template>
+        </van-field>
+      </van-form>
+    </van-popup>
   </div>
 </template>
 
@@ -117,6 +193,17 @@ initPatientList()
     .patient-tip {
       color: var(--cp-tag);
       padding: 12px 0;
+    }
+  }
+
+  ::v-deep() {
+    .van-popup {
+      width: 100%;
+      height: 100%;
+
+      .van-form {
+        padding-top: 46px;
+      }
     }
   }
 }

@@ -25,7 +25,7 @@ export type UserInfo = OmitUser & {
 }
 
 // 家庭档案列表类型
-type PatientType = {
+export type PatientType = {
   // 患者姓名
   name: string
   // 患者身份证号
@@ -35,11 +35,11 @@ type PatientType = {
   // 性别 1男 0女
   gender?: 0 | 1
   // 性别值
-  genderValue: number
+  genderValue?: number
   // 年龄
   age?: number
   // id
-  id: string
+  id?: string
 }
 
 export type PatientList = PatientType[]
