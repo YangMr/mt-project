@@ -14,6 +14,17 @@ const router = createRouter({
       component: () => import('../views/Register/index.vue')
     },
     {
+      path: '/order',
+      name: 'order',
+      component: () => import('../views/Order/index.vue')
+    },
+    {
+      path: '/user/patient',
+      name: 'patient',
+      component: () => import('../views/User/PatientPage.vue'),
+      meta: { title: '家庭档案' }
+    },
+    {
       path: '/',
       name: 'layout',
       component: () => import('../views/Layout/index.vue'),
