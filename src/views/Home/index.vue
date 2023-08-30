@@ -2,6 +2,7 @@
 import KnowledgeList from './components/KnowledgeList.vue'
 import { ref } from 'vue'
 import type { KnowledgeType } from '@/types/consult.d.ts'
+import FollowDoctor from './components/FollowDoctor.vue'
 
 const active = ref<KnowledgeType>('recommend')
 </script>
@@ -80,6 +81,7 @@ const active = ref<KnowledgeType>('recommend')
 
     <van-tabs sticky shrink v-model:active="active">
       <van-tab name="like" title="关注">
+        <FollowDoctor></FollowDoctor>
         <KnowledgeList type="like"></KnowledgeList>
       </van-tab>
       <van-tab name="recommend" title="推荐">
