@@ -1,3 +1,5 @@
+import { ConsultType, IllnessTime, IllnessType } from '@/enum'
+
 export type KnowledgeType = 'recommend' | 'fatReduction' | 'food' | 'like'
 
 export type Knowledge = {
@@ -110,3 +112,37 @@ export type LikeParams = {
   type: string
 }
 export type FollowType = 'topic' | 'knowledge' | 'doc' | 'disease'
+
+// 图片病例信息
+type Image = {
+  id: string
+  url: string
+}
+
+// 问诊记录
+export type Consult = {
+  // 问诊记录ID
+  id: string
+  // 问诊类型
+  type: ConsultType
+  // 快速问诊类型，0 普通 1 三甲
+  illnessType: IllnessType
+  // 科室ID
+  depId: string
+  // 疾病描述
+  illnessDesc: string
+  // 疾病持续时间
+  illnessTime: IllnessTime
+  // 是否就诊过，0 未就诊过  1 就诊过
+  consultFlag: 0 | 1
+  // 患者ID
+  patientId: string
+  // 优惠券ID
+  couponId: string
+  // 图片数组
+  pictures: Image[]
+}
+
+// 问诊记录变成可选 Partial 将定义的必填类型转化为可选类型
+// Required 转换为全部必须   Partial 转换问全部可选  两个内置的泛型类型
+export type PartialConsult = Partial<Consult>
