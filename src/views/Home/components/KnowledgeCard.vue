@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import type { Knowledge } from '@/types/consult'
+import useFollowDoctor from '../../../composable/useFollowDoctor'
 defineProps<{
   item: Knowledge
 }>()
+
+const { loading, followDoctor } = useFollowDoctor('knowledge')
 </script>
 
 <template>
@@ -13,7 +16,7 @@ defineProps<{
         <p class="name">{{ item.creatorName }}</p>
         <p class="dep van-ellipsis">{{ item.creatorTitles }}</p>
       </div>
-      <van-button class="btn" size="small" round>
+      <van-button :loading="loading" @click="followDoctor(item)" class="btn" size="small" round>
         {{ item.likeFlag ? '已关注' : '+ 关注' }}
       </van-button>
     </div>
