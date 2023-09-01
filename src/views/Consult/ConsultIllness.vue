@@ -1,9 +1,36 @@
 <script setup lang="ts">
 import { ConsultFlag, IllnessTime } from '@/enum'
-import type { FormConsult } from '@/types/consult'
+import type { FormConsult, Image } from '@/types/consult'
 import type { UploaderAfterRead, UploaderFileListItem } from 'vant/lib/uploader/types'
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { uploadImage } from '../../services/consult'
+import { useConsultStore } from '@/stores/consult'
+import { useRouter } from 'vue-router'
+import { showToast } from 'vant'
+import { showConfirmDialog } from 'vant'
+
+const store = useConsultStore()
+const router = useRouter()
+
+// 保存的是上传的图片
+const fileList = ref<Image[]>([])
+
+onMounted(async () => {
+  if (store.consult.illnessDesc) {
+    await showConfirmDialog({
+      title: '温馨提示',
+      message: '是否恢复您之前填写的病情信息呢？',
+      confirmButtonColor: 'var(--cp-primary)',
+      closeOnPopstate: false
+    })
+
+    const { illnessDesc, illnessTime, consultFlag, pictures } = store.consult
+    form.value = { illnessDesc, illnessTime, consultFlag, pictures }
+    // 图片回显
+    fileList.value = pictures || []
+  }
+})
+
 const timeOptions = [
   { label: '一周内', value: IllnessTime.Week },
   { label: '一月内', value: IllnessTime.Month },
@@ -21,6 +48,14 @@ const form = ref<FormConsult>({
   illnessTime: undefined,
   consultFlag: undefined,
   pictures: []
+})
+
+const disabledStatus = computed(() => {
+  return (
+    !form.value.illnessDesc ||
+    form.value.illnessTime === undefined ||
+    form.value.consultFlag === undefined
+  )
 })
 
 // 上传图片
@@ -44,12 +79,20 @@ const afterRead: UploaderAfterRead = async (item: any) => {
 
 // 删除图片
 const onDeleteImg = (item: UploaderFileListItem) => {
-  console.log('item', item)
   form.value.pictures = form.value.pictures?.filter((pic) => pic.url != item.url)
 }
 
-// 保存的是上传的图片
-const fileList = ref([])
+const next = () => {
+  // 校验提示
+  if (!form.value.illnessDesc) return showToast('请输入病情描述')
+  if (form.value.illnessTime === undefined) return showToast('请选择症状持续时间')
+  if (form.value.consultFlag === undefined) return showToast('请选择是否已经就诊')
+
+  // 将病情描述数据存储到pinia
+  store.setIllness(form.value)
+  // 跳转到选择患者页面
+  router.push('/user/patient?isChange=1')
+}
 </script>
 
 <template>
@@ -94,6 +137,12 @@ const fileList = ref([])
         @delete="onDeleteImg"
       />
       <div class="tip" v-if="fileList.length <= 0">上传内容仅医生可见,最多9张图,最大5MB</div>
+    </div>
+
+    <div class="btn">
+      <van-button @click="next" :class="{ disabled: disabledStatus }" type="primary" block round
+        >下一步</van-button
+      >
     </div>
   </div>
 </template>
@@ -196,6 +245,21 @@ const fileList = ref([])
           color: var(--cp-text3);
         }
       }
+    }
+  }
+
+  .btn {
+    padding: 0 15px;
+    .van-button {
+      font-size: 16px;
+      margin-top: 13px;
+    }
+
+    .disabled {
+      opacity: 1;
+      background: #fafafa;
+      color: #d9dbde;
+      border: #fafafa;
     }
   }
 }

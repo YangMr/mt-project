@@ -31,7 +31,6 @@ const finished = ref(false)
 
 // 初始化请求
 // const initConsultList = async () => {
-//   console.log('!23')
 //   const consultRes = await getConsultList(consultParams.value)
 //   consultData.value = consultRes.data
 //   // list.value = consultData.value.rows

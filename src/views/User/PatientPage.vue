@@ -5,6 +5,16 @@ import { ref, computed } from 'vue'
 import { showToast } from 'vant'
 import Validator from 'id-validator'
 import { showConfirmDialog } from 'vant'
+import { useRoute, useRouter } from 'vue-router'
+import { useConsultStore } from '@/stores/consult'
+const store = useConsultStore()
+
+const route = useRoute()
+const router = useRouter()
+
+const isChange = computed(() => {
+  return route.query.isChange
+})
 
 // 创建一个变量,保存患者列表
 const list = ref<PatientList>()
@@ -13,6 +23,15 @@ const list = ref<PatientList>()
 const initPatientList = async () => {
   const patienRes = await getPatientList()
   list.value = patienRes.data
+
+  if (isChange.value && list.value.length) {
+    const defPatient = list.value.find((item) => item.defaultFlag === 1)
+    if (defPatient) {
+      patienId.value = defPatient.id as string
+    } else {
+      patienId.value = list.value[0].id as string
+    }
+  }
 }
 initPatientList()
 
@@ -27,7 +46,6 @@ const show = ref(false)
 
 // 打开弹出层
 const showPopup = (item?: PatientType) => {
-  console.log('item', item)
   if (item) {
     const { id, gender, name, idCard, defaultFlag } = item
     patient.value = { id, gender, name, idCard, defaultFlag }
@@ -70,7 +88,6 @@ const patient = ref<PatientType>({ ...initPatient })
 
 const defaultFlag = computed({
   get() {
-    console.log('123')
     return patient.value.defaultFlag === 1 ? true : false
   },
   set(value) {
@@ -91,13 +108,40 @@ const remove = async () => {
     showToast('删除成功')
   }
 }
+
+// 选择患者
+let patienId = ref<string>('')
+const selectedPatient = (item: PatientType) => {
+  if (isChange.value) {
+    patienId.value = item.id as string
+  }
+}
+
+const next = () => {
+  if (!patienId.value) return showToast('请选就诊择患者')
+
+  store.setPatientId(patienId.value)
+  router.push('/consult/pay')
+}
 </script>
 
 <template>
   <div class="patient-page">
-    <cp-nav-bar title="家庭档案"></cp-nav-bar>
+    <cp-nav-bar :title="isChange ? '选择患者' : '家庭档案'"></cp-nav-bar>
+    <!-- 头部提示 -->
+    <div class="patient-change" v-if="isChange">
+      <h3>请选择患者信息</h3>
+      <p>以便医生给出更准确的治疗，信息仅医生可见</p>
+    </div>
+
     <div class="patient-page-list">
-      <div class="patient-item" v-for="(item, index) in list" :key="index">
+      <div
+        class="patient-item"
+        @click="selectedPatient(item)"
+        v-for="(item, index) in list"
+        :key="index"
+        :class="{ selected: item.id === patienId }"
+      >
         <div class="info">
           <span class="name">{{ item.name }}</span>
           <span class="id">{{ item.idCard.replace(/^(.{6})(?:\d+)(.{4})$/, '\$1******\$2') }}</span>
@@ -143,24 +187,46 @@ const remove = async () => {
         <van-action-bar-button @click="remove">删除</van-action-bar-button>
       </van-action-bar>
     </van-popup>
+
+    <!-- 底部按钮 -->
+    <div class="patient-next">
+      <van-button type="primary" @click="next" round block>下一步</van-button>
+    </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
 .patient-page {
   padding: 46px 0 80px;
+
+  .patient-change {
+    padding: 15px;
+    > h3 {
+      font-weight: normal;
+      margin-bottom: 5px;
+    }
+    > p {
+      color: var(--cp-text3);
+    }
+  }
+
   &-list {
     padding: 15px;
-
     .patient-item {
       background-color: var(--cp-bg);
       padding: 15px;
+      border: 1px solid var(--cp-bg);
       border-radius: 8px;
       display: flex;
       align-items: center;
       overflow: hidden;
       position: relative;
       margin-bottom: 15px;
+      &.selected {
+        border-color: var(--cp-primary);
+        background-color: var(--cp-plain);
+      }
+
       .info {
         display: flex;
         flex: 1;
@@ -246,6 +312,17 @@ const remove = async () => {
         }
       }
     }
+  }
+
+  .patient-next {
+    padding: 15px;
+    background-color: #fff;
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 80px;
+    box-sizing: border-box;
   }
 }
 </style>

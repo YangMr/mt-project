@@ -66,7 +66,6 @@ const sendCode = async () => {
 
   // 调用接口
   const codeRes = await sendMobileCode(loginForm.value.mobile, 'login')
-  console.log('codeRes', codeRes)
 
   // 倒计时逻辑
   showToast('发送成功')

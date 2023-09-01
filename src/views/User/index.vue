@@ -17,7 +17,6 @@ const user = ref<UserInfo>()
 const initUserInfo = async () => {
   const userRes = await getUserInfo()
   user.value = userRes.data
-  console.log('user.value ', user.value)
 }
 initUserInfo()
 

@@ -52,5 +52,7 @@ export const useConsultStore = defineStore(
       setCouponId
     }
   },
-  {}
+  {
+    persist: true
+  }
 )
