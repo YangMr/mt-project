@@ -1,6 +1,31 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-const active = ref(1)
+import { ref, computed } from 'vue'
+import type { DepList, SubDep } from '@/types/consult'
+import { getAllDep } from '@/services/consult'
+import { useConsultStore } from '@/stores/consult'
+const store = useConsultStore()
+
+const list = ref<DepList>([])
+// const childList = ref<SubDep[]>()
+const active = ref(0)
+
+const initDepList = async () => {
+  const depRes = await getAllDep()
+  list.value = depRes.data
+  // childList.value = list.value[active.value].child
+}
+initDepList()
+
+const childList = computed(() => {
+  return list.value[active.value]?.child
+})
+
+// const onChange = (index: number) => {
+//   active.value = index
+//   if (list.value) {
+//     childList.value = list.value[index].child
+//   }
+// }
 </script>
 
 <template>
@@ -8,59 +33,16 @@ const active = ref(1)
     <cp-nav-bar title="选择科室"></cp-nav-bar>
     <div class="wrapper">
       <van-sidebar v-model="active">
-        <van-sidebar-item title="内科" />
-        <van-sidebar-item title="外科" />
-        <van-sidebar-item title="皮肤科" />
-        <van-sidebar-item title="骨科" />
-        <van-sidebar-item title="内科" />
-        <van-sidebar-item title="外科" />
-        <van-sidebar-item title="皮肤科" />
-        <van-sidebar-item title="骨科" />
-        <van-sidebar-item title="内科" />
-        <van-sidebar-item title="外科" />
-        <van-sidebar-item title="皮肤科" />
-        <van-sidebar-item title="骨科" />
-        <van-sidebar-item title="内科" />
-        <van-sidebar-item title="外科" />
-        <van-sidebar-item title="皮肤科" />
-        <van-sidebar-item title="骨科" />
-        <van-sidebar-item title="内科" />
-        <van-sidebar-item title="外科" />
-        <van-sidebar-item title="皮肤科" />
-        <van-sidebar-item title="骨科" />
-        <van-sidebar-item title="内科" />
-        <van-sidebar-item title="外科" />
-        <van-sidebar-item title="皮肤科" />
-        <van-sidebar-item title="骨科" />
+        <van-sidebar-item v-for="(item, index) in list" :key="index" :title="item.name" />
       </van-sidebar>
       <div class="sub-dep">
-        <router-link to="/consult/illness">科室一</router-link>
-        <router-link to="/consult/illness">科室二</router-link>
-        <router-link to="/consult/illness">科室三</router-link>
-        <router-link to="/consult/illness">科室一</router-link>
-        <router-link to="/consult/illness">科室二</router-link>
-        <router-link to="/consult/illness">科室三</router-link>
-        <router-link to="/consult/illness">科室一</router-link>
-        <router-link to="/consult/illness">科室二</router-link>
-        <router-link to="/consult/illness">科室三</router-link>
-        <router-link to="/consult/illness">科室一</router-link>
-        <router-link to="/consult/illness">科室二</router-link>
-        <router-link to="/consult/illness">科室三</router-link>
-        <router-link to="/consult/illness">科室一</router-link>
-        <router-link to="/consult/illness">科室二</router-link>
-        <router-link to="/consult/illness">科室三</router-link>
-        <router-link to="/consult/illness">科室一</router-link>
-        <router-link to="/consult/illness">科室二</router-link>
-        <router-link to="/consult/illness">科室三</router-link>
-        <router-link to="/consult/illness">科室一</router-link>
-        <router-link to="/consult/illness">科室二</router-link>
-        <router-link to="/consult/illness">科室三</router-link>
-        <router-link to="/consult/illness">科室一</router-link>
-        <router-link to="/consult/illness">科室二</router-link>
-        <router-link to="/consult/illness">科室三</router-link>
-        <router-link to="/consult/illness">科室一</router-link>
-        <router-link to="/consult/illness">科室二</router-link>
-        <router-link to="/consult/illness">科室三</router-link>
+        <router-link
+          @click="store.setDepId(child.id)"
+          v-for="(child, i) in childList"
+          :key="i"
+          to="/consult/illness"
+          >{{ child.name }}</router-link
+        >
       </div>
     </div>
   </div>

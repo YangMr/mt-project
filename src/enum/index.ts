@@ -27,3 +27,8 @@ export enum IllnessTime {
   // 半年以上
   More
 }
+
+export enum ConsultFlag {
+  isFlag = 1,
+  noFlag = 0
+}

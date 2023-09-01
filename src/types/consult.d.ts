@@ -114,7 +114,7 @@ export type LikeParams = {
 export type FollowType = 'topic' | 'knowledge' | 'doc' | 'disease'
 
 // 图片病例信息
-type Image = {
+export type Image = {
   id: string
   url: string
 }
@@ -146,3 +146,23 @@ export type Consult = {
 // 问诊记录变成可选 Partial 将定义的必填类型转化为可选类型
 // Required 转换为全部必须   Partial 转换问全部可选  两个内置的泛型类型
 export type PartialConsult = Partial<Consult>
+
+export type FormConsult = Pick<
+  PartialConsult,
+  'illnessDesc' | 'illnessTime' | 'consultFlag' | 'pictures'
+>
+
+// 科室
+export type SubDep = {
+  // 科室ID
+  id: string
+  // 科室名称
+  name: string
+}
+
+export type TopDep = SubDep & {
+  // 二级科室数组
+  child: SubDep[]
+}
+
+export type DepList = TopDep[]
