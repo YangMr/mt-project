@@ -6,7 +6,9 @@ import type {
   DoctorPage,
   LikeParams,
   DepList,
-  Image
+  Image,
+  ConsultOrderPreData,
+  ConsultOrderPreParams
 } from '@/types/consult'
 
 // 首页-查询推荐/减脂/饮食健康/关注页面--百科文章列表
@@ -33,4 +35,9 @@ export const uploadImage = (file: File) => {
   const fd = new FormData()
   fd.append('file', file)
   return request<Image>('/upload', 'POST', fd)
+}
+
+// 拉取预支付订单信息
+export const getConsultOrderPre = (payParams: ConsultOrderPreParams) => {
+  return request<ConsultOrderPreData>('/patient/consult/order/pre', 'GET', payParams)
 }
