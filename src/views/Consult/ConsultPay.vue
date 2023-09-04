@@ -73,7 +73,7 @@ const handlePay = async () => {
   const payRes = await getConsultOrderPayUrl({
     paymentMethod: paymentMethod.value,
     orderId: orderId.value,
-    payCallback: 'http://localhost/room'
+    payCallback: 'http://localhost:5173/#/room'
   })
 
   window.location.href = payRes.data.payUrl
@@ -154,10 +154,11 @@ onMounted(() => {
     </div>
 
     <van-submit-bar
+      v-if="payInfo"
       @click="submit"
       text-align="left"
       button-type="primary"
-      :price="2900"
+      :price="payInfo?.actualPayment * 100"
       button-text="立即支付"
       :loading="loading"
     />

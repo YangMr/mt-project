@@ -55,6 +55,12 @@ const router = createRouter({
       meta: { title: '问诊支付' }
     },
     {
+      path: '/room',
+      name: 'room',
+      component: () => import('../views/Room/index.vue'),
+      meta: { title: '问诊室' }
+    },
+    {
       path: '/',
       name: 'layout',
       component: () => import('../views/Layout/index.vue'),
