@@ -8,7 +8,8 @@ import type {
   DepList,
   Image,
   ConsultOrderPreData,
-  ConsultOrderPreParams
+  ConsultOrderPreParams,
+  PartialConsult
 } from '@/types/consult'
 
 // 首页-查询推荐/减脂/饮食健康/关注页面--百科文章列表
@@ -40,4 +41,18 @@ export const uploadImage = (file: File) => {
 // 拉取预支付订单信息
 export const getConsultOrderPre = (payParams: ConsultOrderPreParams) => {
   return request<ConsultOrderPreData>('/patient/consult/order/pre', 'GET', payParams)
+}
+
+// 生成订单
+export const createConsultOrder = (orderParams: PartialConsult) => {
+  return request<{ id: string }>('/patient/consult/order', 'POST', orderParams)
+}
+
+// 发起支付
+export const getConsultOrderPayUrl = (payParams: {
+  paymentMethod: 0 | 1
+  orderId: string
+  payCallback: string
+}) => {
+  return request<{ payUrl: string }>('/patient/consult/pay', 'POST', payParams)
 }
