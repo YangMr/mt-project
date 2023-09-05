@@ -1,14 +1,19 @@
 <script setup lang="ts">
-import { getOrderDetail } from '@/services/consult'
+import { createConsultOrder, getOrderDetail } from '@/services/consult'
 import type { ConsultOrderItem } from '@/types/consult'
 import { ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { getIllnessTimeText, getConsultFlagText } from '@/utils/filter'
 import { OrderType } from '@/enum'
+import ConsultMore from './components/ConsultMore.vue'
+import useShowPrescription, { useDeleteOrder } from '@/composable'
+import { useClipboard } from '@vueuse/core'
+import { showConfirmDialog, showToast } from 'vant'
 const route = useRoute()
+const router = useRouter()
 
 // 获取订单id
-const orderId = route.params.id as string
+let orderId = route.params.id as string
 
 // 获取订单详情数据
 const detailInfo = ref<ConsultOrderItem>()
@@ -18,6 +23,47 @@ const initOrderDetail = async () => {
   detailInfo.value = orderRes.data
 }
 initOrderDetail()
+
+// 查看处方
+const { showPrescription } = useShowPrescription()
+
+// 删除订单
+const { handleDeleteOrder } = useDeleteOrder(() => {
+  router.push('/user/consult')
+})
+
+// 赋值订单号
+const { copy, isSupported } = useClipboard()
+const onCopy = async () => {
+  if (!isSupported) return showToast('未授权,不支持')
+  await copy(detailInfo.value?.orderNo || '')
+  showToast('已复制')
+}
+
+// 支付
+// 控制支付方式弹窗显示与隐藏
+import { useConsultStore } from '@/stores/consult'
+const store = useConsultStore()
+const show = ref(false)
+
+// 关闭支付方式弹窗
+const onClose = () => {
+  return showConfirmDialog({
+    title: '关闭支付',
+    message: '取消支付将无法获得医生回复，医生接诊名额有限，是否确认关闭？',
+    cancelButtonText: '仍要关闭',
+    confirmButtonText: '继续支付',
+    confirmButtonColor: 'var(--cp-primary)'
+  })
+    .then((res) => {
+      return false
+    })
+    .catch((error) => {
+      router.push('/user/consult')
+      return true
+    })
+}
+const loading = ref(false)
 </script>
 
 <template>
@@ -63,7 +109,7 @@ initOrderDetail()
       <van-cell-group :border="false">
         <van-cell title="订单编号">
           <template #value>
-            <span class="copy">复制</span>
+            <span class="copy" @click="onCopy">复制</span>
             {{ detailInfo.orderNo }}
           </template>
         </van-cell>
@@ -81,7 +127,7 @@ initOrderDetail()
         <span>￥{{ detailInfo.actualPayment }}</span>
       </div>
       <van-button type="default" round>取消问诊</van-button>
-      <van-button type="primary" round>继续支付</van-button>
+      <van-button type="primary" round @click="show = true">继续支付</van-button>
     </div>
     <div class="detail-action van-hairline--top" v-if="detailInfo.status === OrderType.ConsultWait">
       <van-button type="default" round>取消问诊</van-button>
@@ -95,7 +141,11 @@ initOrderDetail()
       class="detail-action van-hairline--top"
       v-if="detailInfo.status === OrderType.ConsultComplete"
     >
-      <cp-consult-more></cp-consult-more>
+      <consult-more
+        :disabled="!detailInfo.prescriptionId"
+        @on-delete="handleDeleteOrder(detailInfo)"
+        @on-preview="showPrescription(detailInfo.prescriptionId!)"
+      ></consult-more>
       <van-button type="default" round :to="`/room?orderId=${detailInfo.id}`">问诊记录</van-button>
       <van-button type="primary" round v-if="detailInfo.evaluateId">写评价</van-button>
       <van-button type="default" round v-else>查看评价</van-button>
@@ -114,6 +164,13 @@ initOrderDetail()
     <van-skeleton title :row="4" style="margin-top: 30px" />
     <van-skeleton title :row="4" style="margin-top: 30px" />
   </div>
+
+  <cp-pay-sheet
+    v-model:show="show"
+    :actualPayment="detailInfo?.actualPayment!"
+    :onClose="onClose"
+    :orderId="orderId"
+  ></cp-pay-sheet>
 </template>
 
 <style lang="scss" scoped>

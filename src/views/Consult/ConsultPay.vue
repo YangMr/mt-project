@@ -63,21 +63,21 @@ const submit = async () => {
 // 控制支付方式弹窗显示与隐藏
 const show = ref(false)
 
-// 支付方法 1 支付宝支付 0 微信支付
-const paymentMethod = ref()
+// // 支付方法 1 支付宝支付 0 微信支付
+// const paymentMethod = ref()
 
-// 发起支付
-const handlePay = async () => {
-  if (!paymentMethod.value) return showToast('请选择支付方式')
+// // 发起支付
+// const handlePay = async () => {
+//   if (!paymentMethod.value) return showToast('请选择支付方式')
 
-  const payRes = await getConsultOrderPayUrl({
-    paymentMethod: paymentMethod.value,
-    orderId: orderId.value,
-    payCallback: 'http://localhost:5173/#/room'
-  })
+//   const payRes = await getConsultOrderPayUrl({
+//     paymentMethod: paymentMethod.value,
+//     orderId: orderId.value,
+//     payCallback: 'http://localhost:5173/#/room'
+//   })
 
-  window.location.href = payRes.data.payUrl
-}
+//   window.location.href = payRes.data.payUrl
+// }
 
 // 关闭支付方式弹窗
 const onClose = () => {
@@ -170,7 +170,13 @@ onMounted(() => {
     <van-skeleton title :row="3" />
   </div>
 
-  <van-action-sheet
+  <cp-pay-sheet
+    v-model:show="show"
+    :actualPayment="payInfo?.actualPayment!"
+    :onClose="onClose"
+    :orderId="orderId"
+  ></cp-pay-sheet>
+  <!-- <van-action-sheet
     :beforeClose="onClose"
     :closeable="false"
     v-model:show="show"
@@ -193,7 +199,7 @@ onMounted(() => {
         <van-button type="primary" round block @click="handlePay">立即支付</van-button>
       </div>
     </div>
-  </van-action-sheet>
+  </van-action-sheet> -->
 </template>
 
 <style lang="scss" scoped>
