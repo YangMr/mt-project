@@ -2,8 +2,10 @@
 import type { ConsultOrderItem } from '@/types/consult'
 import { OrderType } from '@/enum'
 import { ref, computed } from 'vue'
-import { cancelOrder, deleteOrder } from '@/services/consult'
-import { showToast } from 'vant'
+import { cancelOrder, deleteOrder, getPrescriptionPic } from '@/services/consult'
+import { showToast, showImagePreview } from 'vant'
+import useShowPrescription from '@/composable/index'
+
 const props = defineProps<{
   item: ConsultOrderItem
 }>()
@@ -67,6 +69,9 @@ const handleDeleteOrder = async (item: ConsultOrderItem) => {
     deleteLoading.value = false
   }
 }
+
+// 查看处方
+const { showPrescription } = useShowPrescription()
 </script>
 
 <template>
@@ -76,7 +81,7 @@ const handleDeleteOrder = async (item: ConsultOrderItem) => {
       <p>{{ item.docInfo?.name || '极速问诊（自动分配医生）' }}</p>
       <span>{{ filterOrderStatus(item.status) }}</span>
     </div>
-    <div class="body">
+    <div class="body" @click="$router.push(`/user/consult/${item.id}`)">
       <div class="body-row">
         <div class="body-label">病情描述</div>
         <div class="body-value">{{ item.illnessDesc }}</div>
@@ -105,7 +110,14 @@ const handleDeleteOrder = async (item: ConsultOrderItem) => {
       >
     </div>
     <div class="foot" v-if="item.status === OrderType.ConsultChat">
-      <van-button v-if="item.prescriptionId" class="gray" plain size="small" round>
+      <van-button
+        @click="showPrescription(item.prescriptionId)"
+        v-if="item.prescriptionId"
+        class="gray"
+        plain
+        size="small"
+        round
+      >
         查看处方
       </van-button>
       <van-button type="primary" plain size="small" round :to="`/room?orderId=${item.id}`">
