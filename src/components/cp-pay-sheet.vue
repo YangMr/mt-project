@@ -8,6 +8,7 @@ const props = defineProps<{
   orderId: string
   actualPayment: number
   onClose?: () => void
+  payCallback: string
 }>()
 
 const emit = defineEmits<{
@@ -19,11 +20,11 @@ const paymentMethod = ref<0 | 1>()
 // 发起支付
 const handlePay = async () => {
   if (!paymentMethod.value) return showToast('请选择支付方式')
-
+  console.log('props', props.payCallback)
   const payRes = await getConsultOrderPayUrl({
     paymentMethod: paymentMethod.value,
     orderId: props.orderId,
-    payCallback: 'http://localhost:5173/#/room'
+    payCallback: 'http://localhost:5173/#/' + props.payCallback
   })
 
   window.location.href = payRes.data.payUrl

@@ -166,6 +166,7 @@ const loading = ref(false)
   </div>
 
   <cp-pay-sheet
+    payCallback="room"
     v-model:show="show"
     :actualPayment="detailInfo?.actualPayment!"
     :onClose="onClose"

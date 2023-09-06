@@ -14,11 +14,6 @@ const router = createRouter({
       component: () => import('../views/Register/index.vue')
     },
     {
-      path: '/order',
-      name: 'order',
-      component: () => import('../views/Order/index.vue')
-    },
-    {
       path: '/user/patient',
       name: 'patient',
       component: () => import('../views/User/PatientPage.vue'),
@@ -35,6 +30,12 @@ const router = createRouter({
       name: 'consult',
       component: () => import('../views/User/ConsultPage.vue'),
       meta: { title: '问诊记录' }
+    },
+    {
+      path: '/order/pay',
+      name: 'orderPay',
+      component: () => import('../views/Order/OrderPay.vue'),
+      meta: { title: '药品支付' }
     },
     {
       path: '/user/consult/:id',

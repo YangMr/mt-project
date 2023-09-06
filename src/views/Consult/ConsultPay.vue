@@ -171,6 +171,7 @@ onMounted(() => {
   </div>
 
   <cp-pay-sheet
+    payCallback="room"
     v-model:show="show"
     :actualPayment="payInfo?.actualPayment!"
     :onClose="onClose"
