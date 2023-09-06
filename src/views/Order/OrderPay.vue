@@ -21,7 +21,7 @@ const medicalOrderId = ref<string>()
 const onSubmit = async () => {
   if (!agree.value) return showToast('请勾选支付协议')
   if (!address.value?.id) return showToast('请选择收货地址')
-  if (!medicalOrderId.value) return showToast('未找到处方')
+  if (!prescriptionId) return showToast('未找到处方')
   // 调用生成药品订单接口,生成药品订单
   const orderRes = await createMedicalOrder({
     id: prescriptionId as string,

@@ -5,7 +5,7 @@
     <cp-nav-bar title="医生问诊室"></cp-nav-bar>
     聊天内容
 
-    <van-button @click="$router.push('/order/pay?id=6938464898215936')">购买药品</van-button>
+    <van-button @click="$router.push('/order/pay?id=6938560516042752')">购买药品</van-button>
   </div>
 </template>
 
