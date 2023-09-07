@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { createMedicalOrder, getAdderss, getMedicineInfo } from '@/services/order'
 import type { MedicineResponseType, addressResponseType } from '@/types/order'
+import OrderMedical from './components/OrderMedical.vue'
 import { ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { showConfirmDialog, showToast } from 'vant'
@@ -86,7 +87,8 @@ initMedicineInfo()
       </p>
     </div>
 
-    <div class="order-medical">
+    <OrderMedical :medicine-info="medicineInfo" />
+    <!-- <div class="order-medical">
       <div class="head">
         <h3>优医药房</h3>
         <small>优医质保 假一赔十</small>
@@ -110,7 +112,7 @@ initMedicineInfo()
         </div>
         <div class="desc">用法用量: {{ item.usageDosag }}</div>
       </div>
-    </div>
+    </div> -->
 
     <div class="order-detail">
       <van-cell-group>
@@ -136,7 +138,7 @@ initMedicineInfo()
       :loading="loading"
       button-type="primary"
       text-align="left"
-      :price="3050"
+      :price="medicineInfo.actualPayment * 100"
       button-text="立即支付"
       @submit="onSubmit"
     />
