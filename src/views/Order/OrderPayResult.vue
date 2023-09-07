@@ -3,17 +3,19 @@ import { getMedicalOrderDetail } from '@/services/order'
 import type { OrderDetailResponseType } from '@/types/order'
 import { OrderType } from '@/enum'
 import { useRoute } from 'vue-router'
+import { useMedicineOrderDetail } from '@/composable'
 import { ref } from 'vue'
 
 const route = useRoute()
+const { item } = useMedicineOrderDetail(route.query.orderId as string)
 
-const item = ref<OrderDetailResponseType>()
-const initMedicineOrderDetail = async () => {
-  const OrderDetailRes = await getMedicalOrderDetail(route.query.orderId as string)
-  console.log('OrderDetailRes', OrderDetailRes)
-  item.value = OrderDetailRes.data
-}
-initMedicineOrderDetail()
+// const item = ref<OrderDetailResponseType>()
+// const initMedicineOrderDetail = async () => {
+//   const OrderDetailRes = await getMedicalOrderDetail(route.query.orderId as string)
+//   console.log('OrderDetailRes', OrderDetailRes)
+//   item.value = OrderDetailRes.data
+// }
+// initMedicineOrderDetail()
 </script>
 
 <template>

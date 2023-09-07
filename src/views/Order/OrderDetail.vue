@@ -1,38 +1,76 @@
 <script setup lang="ts">
+import { useMedicineOrderDetail } from '@/composable'
+import { useRoute } from 'vue-router'
+import OrderMedical from './components/OrderMedical.vue'
+import { OrderType } from '@/enum'
+const route = useRoute()
+const { item } = useMedicineOrderDetail(route.params.id as string)
+console.log(item)
 const onSubmit = () => {}
 </script>
 
 <template>
-  <div class="order-pay-page">
+  <div class="order-pay-page" v-if="item">
     <cp-nav-bar title="药品订单详情"></cp-nav-bar>
     <div class="head">
-      <div class="card">
+      <div class="card" @click="$router.push(`/order/logistics/${item.id}`)">
         <div class="logistics">
-          <p>【东莞市】您的包裹已由物流公司揽收</p>
-          <p>2019-07-14 17:42:12</p>
+          <p>{{ item?.expressInfo?.content }}</p>
+          <p>{{ item?.expressInfo?.time }}</p>
         </div>
         <van-icon name="arrow" />
       </div>
     </div>
 
-    <!-- <OrderMedical :medicine-info="medicineInfo" /> -->
+    <OrderMedical :medicineInfo="item"></OrderMedical>
 
     <div class="order-detail">
       <van-cell-group>
-        <van-cell title="药品金额" :value="1000"></van-cell>
-        <van-cell title="运费" :value="100"></van-cell>
-        <van-cell title="优惠卷" :value="10"></van-cell>
-        <van-cell title="实付款" :value="900" class="price"></van-cell>
+        <van-cell title="药品金额" :value="`￥${item.payment}`" />
+        <van-cell title="运费" :value="`￥${item.expressFee}`" />
+        <van-cell title="优惠券" :value="`-￥${item.couponDeduction}`" />
+        <van-cell title="实付款" :value="`￥${item.actualPayment}`" />
+        <van-cell title="订单编号" :value="item.orderNo" />
+        <van-cell title="创建时间" :value="item.createTime" />
+        <template
+          v-if="
+            item.status === OrderType.MedicineSend ||
+            item.status === OrderType.MedicineTake ||
+            item.status === OrderType.MedicineComplete
+          "
+        >
+          <van-cell title="支付时间" :value="item.payTime" />
+          <van-cell title="支付方式" :value="item.paymentMethod === 0 ? '微信' : '支付宝'" />
+        </template>
       </van-cell-group>
     </div>
 
-    <van-submit-bar
-      button-type="primary"
-      text-align="left"
-      :price="900 * 100"
-      button-text="立即支付"
-      @submit="onSubmit"
-    />
+    <!-- 已取消 -->
+    <van-action-bar v-if="item.status === OrderType.MedicineCancel">
+      <van-action-bar-icon icon="delete-o" text="删除" />
+      <van-action-bar-button type="primary" text="沟通记录" />
+    </van-action-bar>
+    <!-- 待收货 -->
+    <van-action-bar v-if="item.status === OrderType.MedicineTake">
+      <van-action-bar-button type="primary" text="确认收货" />
+    </van-action-bar>
+    <!-- 待发货 -->
+    <van-action-bar v-if="item.status === OrderType.MedicineSend">
+      <van-action-bar-button type="primary" text="提醒发货" />
+    </van-action-bar>
+    <!-- 待支付 -->
+    <van-action-bar v-if="item.status === OrderType.MedicinePay">
+      <p class="price">
+        需要支付：<span>￥ {{ item.actualPayment }}</span>
+      </p>
+      <van-action-bar-button color="#bbb" text="取消问诊" />
+      <van-action-bar-button type="primary" text="继续支付" />
+    </van-action-bar>
+    <!-- 已完成 -->
+    <van-action-bar v-if="item.status === OrderType.MedicineComplete">
+      <van-action-bar-icon icon="delete-o" text="删除" />
+      <van-action-bar-button type="primary" text="再次购买" />
+    </van-action-bar>
   </div>
 
   <!-- <div class="order-pay-page" v-else>
