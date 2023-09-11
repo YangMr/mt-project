@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { showLoadingToast, closeToast, showToast } from 'vant'
+import { uploadImage } from '@/services/consult'
 defineProps<{
   disabled: boolean
 }>()
 
 const emit = defineEmits<{
   (e: 'send-text', text: string): void
+  (e: 'send-image', { id: string, url: string }): void
 }>()
 
 // 将输入框输入的内容传递给父组件
@@ -14,8 +17,24 @@ const emit = defineEmits<{
 const text = ref<string>('')
 
 const sendText = () => {
+  if (text.value.trim() === '') {
+    return showToast('请输入内容')
+  }
   emit('send-text', text.value)
   text.value = ''
+}
+
+// 图片上传
+const afterRead = async (data) => {
+  console.log('file', data)
+  if (!data.file) return
+
+  showLoadingToast('正在上传')
+
+  const res = await uploadImage(data.file)
+  closeToast()
+
+  emit('send-image', res.data)
 }
 </script>
 
@@ -31,7 +50,7 @@ const sendText = () => {
       v-model="text"
       @keyup.enter="sendText"
     ></van-field>
-    <van-uploader :preview-image="false" :disabled="disabled">
+    <van-uploader :preview-image="false" :disabled="disabled" :after-read="afterRead">
       <cp-icons name="consult-img" />
     </van-uploader>
   </div>

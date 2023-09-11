@@ -5,6 +5,7 @@ import { getIllnessTimeText, getConsultFlagText } from '@/utils/filter'
 import { showImagePreview } from 'vant'
 import { useUserStore } from '@/stores/user'
 import dayjs from 'dayjs'
+import { nextTick } from 'vue'
 
 const store = useUserStore()
 
@@ -22,6 +23,11 @@ const previewImg = (pictures?: Image[]) => {
 // 格式化时间
 const formatTime = (time: number | string) => {
   return dayjs(time).format('HH:mm')
+}
+
+const load = async () => {
+  await nextTick()
+  window.scrollTo(0, document.body.scrollHeight)
 }
 </script>
 
@@ -84,13 +90,29 @@ const formatTime = (time: number | string) => {
         </div>
         <van-image :src="item.fromAvatar" />
       </div>
+      <!-- 发送图片 -->
+      <div class="msg msg-to" v-if="item.msgType === 4 && item.from === store.user?.id">
+        <div class="content">
+          <div class="time">{{ formatTime(item.createTime) }}</div>
+          <van-image @load="load" fit="contain" :src="item.msg.picture.url" />
+        </div>
+        <van-image :src="item.fromAvatar" />
+      </div>
 
       <!-- 接收文字 -->
       <div class="msg msg-from" v-if="item.msgType === 1 && item.from !== store.user?.id">
-        <van-image :src="item.toAvatar" />
+        <van-image :src="item.fromAvatar" />
         <div class="content">
           <div class="time">{{ formatTime(item.createTime) }}</div>
           <div class="pao">{{ item.msg.content }}</div>
+        </div>
+      </div>
+      <!-- 接收图片 -->
+      <div class="msg msg-from" v-if="item.msgType === 4 && item.from !== store.user?.id">
+        <van-image :src="item.fromAvatar" />
+        <div class="content">
+          <div class="time">{{ formatTime(item.createTime) }}</div>
+          <van-image @load="load" fit="contain" :src="item.msg.picture.url" />
         </div>
       </div>
     </template>

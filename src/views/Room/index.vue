@@ -13,10 +13,23 @@ import { MsgType } from '../../enum/index'
 import { getOrderDetail } from '@/services/consult'
 import type { ConsultOrderItem } from '@/types/consult'
 import { OrderType } from '@/enum'
+import dayjs from 'dayjs'
+import { closeToast, showLoadingToast, showToast } from 'vant'
 const store = useUserStore()
 const route = useRoute()
 
-const list = ref<Message[]>()
+// 1. 下载socket.io的客户端
+// 2. 在问诊室页面引入socket.io的客户端文件
+// 3. 连接websocket
+// 4. 监听服务端推送的消息
+// 5. 连接之后,获取到服务端主动的消息, 将消息存储到list
+// 6. 主动服务端发送消息
+// 7. 接收消息(我们主动接收自己发的消息的以及移医生发送给我们的消息)
+// 8. 获取发送的消息之后, 将消息进行渲染
+// 9. 下拉刷新时, 主动给后台发送获取聊天记录的请求, 这个时候就会触发获取消息记录的方法
+
+const list = ref<Message[]>([])
+let initialMsg = ref(true)
 let socket: Socket
 onMounted(async () => {
   // 连接websocket
@@ -45,11 +58,12 @@ onMounted(async () => {
   })
 
   // 监听默认的聊天信息
-  socket.on('chatMsgList', ({ data }: { data: TimeMessages[] }) => {
+  socket.on('chatMsgList', async ({ data }: { data: TimeMessages[] }) => {
     const arr: Message[] = []
 
     console.log('e', data)
-    data.forEach((item) => {
+    data.forEach((item, index) => {
+      if (index === 0) time.value = item.createTime
       arr.push({
         msgType: MsgType.Notify,
         createTime: item.createTime,
@@ -59,7 +73,20 @@ onMounted(async () => {
       arr.push(...item.items)
     })
     console.log('arr', arr)
-    list.value = arr
+    list.value.unshift(...arr)
+    loading.value = false
+    closeToast()
+    if (!data.length) {
+      closeToast()
+      return showToast('没有聊天记录了')
+    }
+
+    if (initialMsg.value) {
+      socket.emit('updateMsgStatus', arr[arr.length - 1].id)
+      await nextTick()
+      window.scrollTo(0, document.body.scrollHeight)
+      initialMsg.value = false
+    }
   })
 
   // 监听订单状态是否改变
@@ -74,7 +101,14 @@ onMounted(async () => {
     console.log('list', list.value)
 
     await nextTick()
+    // 设置已读
+    socket.emit('updateMsgStatus', event.id)
     window.scrollTo(0, document.body.scrollHeight)
+  })
+
+  // 建立连接成功
+  socket.on('connect', () => {
+    list.value = []
   })
 })
 
@@ -86,6 +120,7 @@ const initOrderDetail = async () => {
 }
 initOrderDetail()
 
+// 发送文本
 const sendText = async (text: string) => {
   console.log('text', text)
   socket.emit('sendChatMsg', {
@@ -101,14 +136,47 @@ const sendText = async (text: string) => {
     }
   })
 }
+
+// 发送图片
+const sendImage = (data: { id: string; url: string }) => {
+  console.log('data', data)
+  socket.emit('sendChatMsg', {
+    // 发送人
+    from: store.user?.id,
+    // 接收人
+    to: consult.value?.docInfo?.id,
+    // 发送消息的类型
+    msgType: MsgType.MsgImage,
+    // 消息内容
+    msg: {
+      picture: data
+    }
+  })
+}
+
+const loading = ref(false)
+const time = ref(dayjs().format('YYYY-MM-DD HH:mm:ss'))
+const onRefresh = () => {
+  showLoadingToast({
+    message: '加载中...',
+    forbidClick: true
+  })
+  socket.emit('getChatMsgList', 20, time.value, route.query.orderId)
+
+  // console.log('tt', time.value)
+}
 </script>
 
 <template>
   <div class="room-page">
     <cp-nav-bar title="医生问诊室"></cp-nav-bar>
     <room-status :status="consult?.status" :countdown="consult?.countdown"></room-status>
-    <room-message :list="list"></room-message>
+    <van-pull-refresh v-model="loading" @refresh="onRefresh">
+      <room-message :list="list"></room-message>
+    </van-pull-refresh>
+
     <room-action
+      @send-image="sendImage"
       @send-text="sendText"
       :disabled="consult?.status === OrderType.ConsultChat ? false : true"
     ></room-action>
