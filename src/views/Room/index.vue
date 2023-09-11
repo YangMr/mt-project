@@ -4,19 +4,23 @@ import RoomStatus from './components/RoomStatus.vue'
 import RoomAction from './components/RoomAction.vue'
 import RoomMessage from './components/RoomMessage.vue'
 import { io } from 'socket.io-client'
-import { onMounted, ref } from 'vue'
+import type { Socket } from 'socket.io-client'
+import { onMounted, ref, nextTick } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { useRoute } from 'vue-router'
 import type { Message, TimeMessages } from '@/types/room'
 import { MsgType } from '../../enum/index'
+import { getOrderDetail } from '@/services/consult'
+import type { ConsultOrderItem } from '@/types/consult'
+import { OrderType } from '@/enum'
 const store = useUserStore()
 const route = useRoute()
 
 const list = ref<Message[]>()
-
+let socket: Socket
 onMounted(async () => {
   // 连接websocket
-  const socket = io('https://consult-api.itheima.net/', {
+  socket = io('https://consult-api.itheima.net/', {
     auth: {
       token: 'Bearer ' + store.user?.token
     },
@@ -57,15 +61,57 @@ onMounted(async () => {
     console.log('arr', arr)
     list.value = arr
   })
+
+  // 监听订单状态是否改变
+  socket.on('statusChange', () => {
+    console.log('123')
+    initOrderDetail()
+  })
+
+  // 接收消息
+  socket.on('receiveChatMsg', async (event) => {
+    list.value?.push(event)
+    console.log('list', list.value)
+
+    await nextTick()
+    window.scrollTo(0, document.body.scrollHeight)
+  })
 })
+
+const consult = ref<ConsultOrderItem>()
+const initOrderDetail = async () => {
+  const orderRes = await getOrderDetail(route.query.orderId as string)
+  console.log('orderRes', orderRes)
+  consult.value = orderRes.data
+}
+initOrderDetail()
+
+const sendText = async (text: string) => {
+  console.log('text', text)
+  socket.emit('sendChatMsg', {
+    // 发送人
+    from: store.user?.id,
+    // 接收人
+    to: consult.value?.docInfo?.id,
+    // 发送消息的类型
+    msgType: MsgType.MsgText,
+    // 消息内容
+    msg: {
+      content: text
+    }
+  })
+}
 </script>
 
 <template>
   <div class="room-page">
     <cp-nav-bar title="医生问诊室"></cp-nav-bar>
-    <room-status></room-status>
+    <room-status :status="consult?.status" :countdown="consult?.countdown"></room-status>
     <room-message :list="list"></room-message>
-    <room-action></room-action>
+    <room-action
+      @send-text="sendText"
+      :disabled="consult?.status === OrderType.ConsultChat ? false : true"
+    ></room-action>
     <!--<van-button @click="$router.push('/order/pay?id=6938560516042752')">购买药品</van-button> -->
   </div>
 </template>

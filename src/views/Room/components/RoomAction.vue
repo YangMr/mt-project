@@ -1,4 +1,23 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { ref } from 'vue'
+defineProps<{
+  disabled: boolean
+}>()
+
+const emit = defineEmits<{
+  (e: 'send-text', text: string): void
+}>()
+
+// 将输入框输入的内容传递给父组件
+// 父组件将接收到的消息通过websocket发送给服务端
+
+const text = ref<string>('')
+
+const sendText = () => {
+  emit('send-text', text.value)
+  text.value = ''
+}
+</script>
 
 <template>
   <div class="room-action">
@@ -8,9 +27,11 @@
       :border="false"
       placeholder="问医生"
       autocomplete="off"
-      :disabled="true"
+      :disabled="disabled"
+      v-model="text"
+      @keyup.enter="sendText"
     ></van-field>
-    <van-uploader :preview-image="false" :disabled="true">
+    <van-uploader :preview-image="false" :disabled="disabled">
       <cp-icons name="consult-img" />
     </van-uploader>
   </div>

@@ -3,6 +3,11 @@ import { MsgType } from '@/enum'
 import type { Image } from '@/types/consult'
 import { getIllnessTimeText, getConsultFlagText } from '@/utils/filter'
 import { showImagePreview } from 'vant'
+import { useUserStore } from '@/stores/user'
+import dayjs from 'dayjs'
+
+const store = useUserStore()
+
 defineProps<{
   list: Message[]
 }>()
@@ -12,6 +17,11 @@ const previewImg = (pictures?: Image[]) => {
   if (pictures && pictures.length > 0) {
     showImagePreview(pictures.map((item) => item.url))
   }
+}
+
+// 格式化时间
+const formatTime = (time: number | string) => {
+  return dayjs(time).format('HH:mm')
 }
 </script>
 
@@ -65,6 +75,24 @@ const previewImg = (pictures?: Image[]) => {
           <span>订单取消</span>
         </div>
       </div>
+
+      <!-- 发送文字 -->
+      <div class="msg msg-to" v-if="item.msgType === 1 && item.from === store.user?.id">
+        <div class="content">
+          <div class="time">{{ formatTime(item.createTime) }}</div>
+          <div class="pao">{{ item.msg.content }}</div>
+        </div>
+        <van-image :src="item.fromAvatar" />
+      </div>
+
+      <!-- 接收文字 -->
+      <div class="msg msg-from" v-if="item.msgType === 1 && item.from !== store.user?.id">
+        <van-image :src="item.toAvatar" />
+        <div class="content">
+          <div class="time">{{ formatTime(item.createTime) }}</div>
+          <div class="pao">{{ item.msg.content }}</div>
+        </div>
+      </div>
     </template>
   </div>
 </template>
@@ -113,6 +141,115 @@ const previewImg = (pictures?: Image[]) => {
       &:nth-child(2n) {
         color: var(--cp-tip);
       }
+    }
+  }
+
+  &-from {
+    .content {
+      max-width: 240px;
+      min-width: 52px;
+      .time {
+        color: var(--cp-tip);
+        margin-bottom: 5px;
+      }
+      .pao {
+        padding: 15px;
+        background-color: #fff;
+        color: var(--cp-text3);
+        font-size: 15px;
+        border-radius: 8px;
+        position: relative;
+        &::before {
+          content: '';
+          position: absolute;
+          left: -13px;
+          top: 10px;
+          width: 13px;
+          height: 16px;
+          background: #fff;
+          border-top-left-radius: 13px 3px;
+        }
+        &::after {
+          content: '';
+          position: absolute;
+          left: -13px;
+          top: 13px;
+          width: 13px;
+          height: 13px;
+          background: var(--cp-bg);
+          border-top-right-radius: 13px 13px;
+        }
+      }
+      .van-image {
+        max-height: 160px;
+        max-width: 160px;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid var(--cp-line);
+      }
+    }
+    > .van-image {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      overflow: hidden;
+      margin-right: 13px;
+    }
+  }
+
+  &-to {
+    justify-content: flex-end;
+    .content {
+      max-width: 240px;
+      min-width: 52px;
+      .time {
+        color: var(--cp-tip);
+        margin-bottom: 5px;
+        text-align: right;
+      }
+      .pao {
+        padding: 15px;
+        background-color: var(--cp-primary);
+        color: #fff;
+        font-size: 15px;
+        border-radius: 8px;
+        position: relative;
+        &::before {
+          content: '';
+          position: absolute;
+          right: -13px;
+          top: 10px;
+          width: 13px;
+          height: 16px;
+          background: var(--cp-primary);
+          border-top-right-radius: 13px 3px;
+        }
+        &::after {
+          content: '';
+          position: absolute;
+          right: -13px;
+          top: 13px;
+          width: 13px;
+          height: 13px;
+          background: var(--cp-bg);
+          border-top-left-radius: 13px 13px;
+        }
+      }
+      .van-image {
+        max-height: 160px;
+        max-width: 160px;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid var(--cp-line);
+      }
+    }
+
+    > .van-image {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      overflow: hidden;
+      margin-left: 13px;
     }
   }
 
